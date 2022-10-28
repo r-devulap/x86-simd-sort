@@ -4,6 +4,7 @@ TESTDIR		= ./tests
 BENCHDIR	= ./benchmarks
 UTILS		= ./utils
 SRCS		= $(wildcard $(SRCDIR)/*.hpp)
+SRCS		+= $(wildcard $(SRCDIR)/*.h)
 TESTS		= $(wildcard $(TESTDIR)/*.cpp)
 TESTOBJS	= $(patsubst $(TESTDIR)/%.cpp,$(TESTDIR)/%.o,$(TESTS))
 TESTOBJS	:= $(filter-out $(TESTDIR)/main.o ,$(TESTOBJS))

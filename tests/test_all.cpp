@@ -10,6 +10,35 @@
 #include "rand_array.h"
 #include <gtest/gtest.h>
 #include <vector>
+#include <iostream>
+
+#ifdef __FLT16_MAX__
+TEST(avx512_sort_fp16, test_arrsizes)
+{
+    if (cpu_has_avx512bw() && (cpu_has_avx512_vbmi2())) {
+        std::vector<int64_t> arrsizes;
+        for (int64_t ii = 0; ii < 1024; ++ii) {
+            arrsizes.push_back(ii);
+        }
+        std::vector<_Float16> arr;
+        std::vector<_Float16> sortedarr;
+        for (size_t ii = 0; ii < arrsizes.size(); ++ii) {
+            /* Random array */
+            arr = get_uniform_rand_fp16array(arrsizes[ii]);
+            sortedarr = arr;
+            /* Sort with std::sort for comparison */
+            std::sort(sortedarr.begin(), sortedarr.end());
+            avx512_qsort_fp16((uint16_t*)arr.data(), arr.size());
+            ASSERT_EQ(sortedarr, arr);
+            arr.clear();
+            sortedarr.clear();
+        }
+    }
+    else {
+        GTEST_SKIP() << "Skipping this test, it requires avx512bw and avx512_vbmi2";
+    }
+}
+#endif
 
 template <typename T>
 class avx512_sort : public ::testing::Test {
@@ -24,7 +53,7 @@ TYPED_TEST_P(avx512_sort, test_arrsizes)
         }
         std::vector<int64_t> arrsizes;
         for (int64_t ii = 0; ii < 1024; ++ii) {
-            arrsizes.push_back((TypeParam)ii);
+            arrsizes.push_back(ii);
         }
         std::vector<TypeParam> arr;
         std::vector<TypeParam> sortedarr;

@@ -6,6 +6,7 @@
 #include <random>
 #include <type_traits>
 #include <vector>
+#include <stdio.h>
 
 template <typename T>
 static std::vector<T> get_uniform_rand_array(
@@ -40,3 +41,18 @@ static std::vector<T> get_uniform_rand_array(
     }
     return arr;
 }
+
+#ifdef __FLT16_MAX__
+static std::vector<_Float16> get_uniform_rand_fp16array( 
+        int64_t arrsize,
+        float max = 6.55040000000000000000000000000000000e+4,  // __FLT16_MAX__
+        float min = -6.55040000000000000000000000000000000e+4)
+{
+    std::vector<_Float16> arr;
+    for (int64_t ii = 0; ii < arrsize; ++ii) {
+        float scale = rand() / (float) RAND_MAX; /* [0, 1.0] */
+        arr.emplace_back(min + scale * ( max - min ));
+    }
+    return arr;
+}
+#endif
