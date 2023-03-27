@@ -37,5 +37,8 @@ meson:
 	meson setup --warnlevel 0 --buildtype plain builddir
 	cd builddir && ninja
 
+check:
+	./builddir/testexe
+
 clean:
 	$(RM) -rf $(TESTDIR)/*.o $(UTILS)/*.o testexe benchexe builddir
