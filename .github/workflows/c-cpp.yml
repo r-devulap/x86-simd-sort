@@ -14,14 +14,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
-      run: apt -y install g++-12 gtest-devel meson wget git cmake
+      run: |
+        sudo apt update
+        sudo apt -y install g++-12 gtest-devel meson wget git cmake
     - name: Install google benchmarks
       run: |
         git clone https://github.com/google/benchmark.git
         cd benchmark
         cmake -E make_directory "build"
         cmake -E chdir "build" cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../
-        cmake --build "build" --config Release --target install      
+        sudo cmake --build "build" --config Release --target install      
     - name: make
       env:
         CXX: g++-12
