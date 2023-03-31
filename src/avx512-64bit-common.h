@@ -46,9 +46,17 @@ struct zmm_vector<int64_t> {
         return _mm512_set_epi64(v1, v2, v3, v4, v5, v6, v7, v8);
     }
 
+    static opmask_t kxor_opmask(opmask_t x, opmask_t y)
+    {
+        return _kxor_mask8(x, y);
+    }
     static opmask_t knot_opmask(opmask_t x)
     {
         return _knot_mask8(x);
+    }
+    static opmask_t le(zmm_t x, zmm_t y)
+    {
+        return _mm512_cmp_epi64_mask(x, y, _MM_CMPINT_LE);
     }
     static opmask_t ge(zmm_t x, zmm_t y)
     {
@@ -157,9 +165,17 @@ struct zmm_vector<uint64_t> {
     {
         return _mm512_i64gather_epi64(index, base, scale);
     }
+    static opmask_t kxor_opmask(opmask_t x, opmask_t y)
+    {
+        return _kxor_mask8(x, y);
+    }
     static opmask_t knot_opmask(opmask_t x)
     {
         return _knot_mask8(x);
+    }
+    static opmask_t le(zmm_t x, zmm_t y)
+    {
+        return _mm512_cmp_epu64_mask(x, y, _MM_CMPINT_LE);
     }
     static opmask_t ge(zmm_t x, zmm_t y)
     {
@@ -257,10 +273,17 @@ struct zmm_vector<double> {
     {
         return _mm512_set_pd(v1, v2, v3, v4, v5, v6, v7, v8);
     }
-
+    static opmask_t kxor_opmask(opmask_t x, opmask_t y)
+    {
+        return _kxor_mask8(x, y);
+    }
     static opmask_t knot_opmask(opmask_t x)
     {
         return _knot_mask8(x);
+    }
+    static opmask_t le(zmm_t x, zmm_t y)
+    {
+        return _mm512_cmp_pd_mask(x, y, _CMP_LE_OQ);
     }
     static opmask_t ge(zmm_t x, zmm_t y)
     {

@@ -112,9 +112,11 @@ template <typename vtype,
           typename opmask_t = typename vtype::opmask_t>
 static inline zmm_t cmp_merge(zmm_t in1, zmm_t in2, opmask_t mask)
 {
-    zmm_t min = vtype::min(in2, in1);
-    zmm_t max = vtype::max(in2, in1);
-    return vtype::mask_mov(min, mask, max); // 0 -> min, 1 -> max
+    typename vtype::opmask_t le_mask = vtype::le(in1, in2);
+    return vtype::mask_mov(in1, vtype::kxor_opmask(le_mask, mask), in2); // 0 -> min, 1 -> max
+    //zmm_t min = vtype::min(in2, in1);
+    //zmm_t max = vtype::max(in2, in1);
+    //return vtype::mask_mov(min, mask, max); // 0 -> min, 1 -> max
 }
 /*
  * Parition one ZMM register based on the pivot and returns the index of the

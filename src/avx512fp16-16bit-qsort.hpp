@@ -42,11 +42,20 @@ struct zmm_vector<_Float16> {
     {
         return _mm512_set1_ph(type_max());
     }
+    static opmask_t kxor_opmask(opmask_t x, opmask_t y)
+    {
+        return _kxor_mask32(x, y);
+    }
+
     static opmask_t knot_opmask(opmask_t x)
     {
         return _knot_mask32(x);
     }
 
+    static opmask_t le(zmm_t x, zmm_t y)
+    {
+        return _mm512_cmp_ph_mask(x, y, _CMP_LE_OQ);
+    }
     static opmask_t ge(zmm_t x, zmm_t y)
     {
         return _mm512_cmp_ph_mask(x, y, _CMP_GE_OQ);
