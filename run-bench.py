@@ -20,7 +20,7 @@ if args.benchcompare:
     baseline = ""
     contender = ""
     if "qsort" in args.benchcompare:
-        baseline = "scalarsort.*" + filterb
+        baseline = "ippsort.*" + filterb
         contender = "simdsort.*" + filterb
     elif "select" in args.benchcompare:
         baseline = "scalarqselect.*" + filterb

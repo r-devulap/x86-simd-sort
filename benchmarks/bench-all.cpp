@@ -1,4 +1,5 @@
 #include "rand_array.h"
+#include "ipp.h"
 #include "x86simdsort.h"
 #include <benchmark/benchmark.h>
 

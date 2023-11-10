@@ -55,7 +55,7 @@ if get_option('build_benchmarks')
   benchexe = executable('benchexe',
                       include_directories : [src, lib, utils, bench],
                       dependencies : [gbench_dep],
-                      link_args: ['-lbenchmark_main'],
+                      link_args: ['-lbenchmark_main', '-lipps', '-lippcore'],
                       link_whole : [libbench],
                       link_with : libsimdsort,
                      )
