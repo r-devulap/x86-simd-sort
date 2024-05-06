@@ -223,3 +223,17 @@ DISPATCH_KEYVALUE_SORT_FORTYPE(int32_t)
 DISPATCH_KEYVALUE_SORT_FORTYPE(float)
 
 } // namespace x86simdsort
+  //
+
+extern "C" {
+    XSS_EXPORT_SYMBOL
+    void keyvalue_qsort_float_uint32(float* key, uint32_t* val, uint32_t size)
+    {
+        x86simdsort::keyvalue_qsort(key, val, size, true);
+    }
+    XSS_EXPORT_SYMBOL
+    void keyvalue_qsort_float_sizet(float* key, size_t* val, size_t size)
+    {
+        x86simdsort::keyvalue_qsort(key, val, size, true);
+    }
+}
