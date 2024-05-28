@@ -236,4 +236,14 @@ extern "C" {
     {
         x86simdsort::keyvalue_qsort(key, val, size, true);
     }
+    XSS_EXPORT_SYMBOL
+    void keyvalue_qsort_sizet_uint32(size_t* key, uint32_t* val, uint32_t size)
+    {
+        x86simdsort::keyvalue_qsort(key, val, size, true);
+    }
+    XSS_EXPORT_SYMBOL
+    void keyvalue_qsort_sizet_sizet(size_t* key, size_t* val, size_t size)
+    {
+        x86simdsort::keyvalue_qsort(key, val, size, true);
+    }
 }

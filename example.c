@@ -7,12 +7,15 @@
 // libx86simdsortcpp.so
 void keyvalue_qsort_float_sizet(float*, size_t*, size_t);
 void keyvalue_qsort_float_uint32(float*, uint32_t*, uint32_t);
+void keyvalue_qsort_sizet_sizet(size_t*, size_t*, size_t);
+void keyvalue_qsort_sizet_uint32(size_t*, uint32_t*, uint32_t);
 
 // struct definition, we will sort an array of these:
 struct Point {
     int x;
     int y;
     float distance;
+    size_t metric;
 };
 
 #define SWAP(a, b, type) {type temp = a; a = b; b = temp;}
@@ -21,17 +24,17 @@ struct Point {
 void object_qsort(struct Point* arr, size_t size)
 {
     /* (1) Create and initialize arrays of key and value  */
-    float* key = malloc(size * sizeof(float));
+    size_t* key = malloc(size * sizeof(size_t));
     size_t* arg = malloc(size * sizeof(size_t));
     bool* done = malloc(size * sizeof(bool));
     for (size_t ii = 0; ii < size; ++ii) {
-        key[ii] = arr[ii].distance;
+        key[ii] = arr[ii].metric;
         arg[ii] = ii;
         done[ii] = false;
     }
 
     /* (2) IndexSort using the keyvalue_qsort */
-    keyvalue_qsort_float_sizet(key, arg, size);
+    keyvalue_qsort_sizet_sizet(key, arg, size);
 
     /* (3) Permute obj array in-place */
     for (size_t ii = 0; ii < size; ++ii) {
@@ -58,6 +61,7 @@ int main() {
     // Initialize:
     for (size_t ii = 0; ii < size; ++ii) {
         arr[ii].distance = (float) rand() / RAND_MAX;
+        arr[ii].metric =  rand() % 100;
     }
 
     // sort:
@@ -66,7 +70,7 @@ int main() {
     // check if it is sorted:
     printf("arr = ");
     for (size_t ii = 0; ii < size; ++ii) {
-        printf("%f, ", arr[ii].distance);
+        printf("%ld, ", arr[ii].metric);
     }
     printf("\n");
     return 0;
