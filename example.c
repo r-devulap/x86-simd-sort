@@ -9,6 +9,10 @@ void keyvalue_qsort_float_sizet(float*, size_t*, size_t);
 void keyvalue_qsort_float_uint32(float*, uint32_t*, uint32_t);
 void keyvalue_qsort_sizet_sizet(size_t*, size_t*, size_t);
 void keyvalue_qsort_sizet_uint32(size_t*, uint32_t*, uint32_t);
+void keyvalue_qsort_uint32_sizet(uint32_t*, size_t*, size_t);
+void keyvalue_qsort_uint32_uint32(uint32_t*, uint32_t*, uint32_t);
+void keyvalue_qsort_int32_sizet(int32_t*, size_t*, size_t);
+void keyvalue_qsort_int32_uint32(int32_t*, uint32_t*, uint32_t);
 
 // struct definition, we will sort an array of these:
 struct Point {
