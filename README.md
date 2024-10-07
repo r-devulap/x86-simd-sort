@@ -45,7 +45,9 @@ int32_t, double, uint64_t, int64_t]`
 
 ## Key-value sort routines on pairs of arrays
 ```cpp
-void x86simdsort::keyvalue_qsort(T1* key, T2* val, size_t size, bool hasnan);
+void x86simdsort::keyvalue_qsort(T1* key, T2* val, size_t size, bool hasnan, bool descending);
+void x86simdsort::keyvalue_select(T1* key, T2* val, size_t k, size_t size, bool hasnan, bool descending);
+void x86simdsort::keyvalue_partial_sort(T1* key, T2* val, size_t k, size_t size, bool hasnan, bool descending);
 ```
 Supported datatypes: `T1`, `T2` $\in$ `[float, uint32_t, int32_t, double,
 uint64_t, int64_t]` Note that keyvalue sort is not yet supported for 16-bit
@@ -77,6 +79,16 @@ written using [googletest](https://github.com/google/googletest) and [google
 benchmark](https://github.com/google/benchmark) frameworks respectively. You
 can configure meson to build them both by using `-Dbuild_tests=true` and
 `-Dbuild_benchmarks=true`.
+
+### Note about building with avx512 by g++ v9 and v10
+
+There is a risk when compile with avx512 by g++ v9 and v10,
+as some `MMX Technology` instructions is used by g++ v9/v10 
+without clearing fpu state. 
+Check [issue 154](https://github.com/intel/x86-simd-sort/issues/154) 
+for more details.
+
+Adding `g++` option `-mno-mmx`, which disables `MMX Technology` instructions, is a possible workaround.
 
 ## Example usage
 
@@ -159,13 +171,11 @@ different metrics:
 
 The performance data (shown in the plot below) can be collected by building the
 benchmarks suite and running `./builddir/benchexe --benchmark_filter==*obj*`.
-The data plot shown below was collected on a processor with AVX-512 because
-`object_qsort` is currently accelerated only on AVX-512 (we plan to add the
-AVX2 version soon). For the simplest of cases where we want to sort an array of
-struct by one of its members, `object_qsort` can be up-to 5x faster for 32-bit
-data type and about 4x for 64-bit data type.  It tends to do even better when
-the metric to sort by gets more complicated. Sorting by Euclidean distance can
-be up-to 10x faster.
+The data plot shown below was collected on a processor with AVX-512. For the
+simplest of cases where we want to sort an array of struct by one of its
+members, `object_qsort` can be up-to 5x faster for 32-bit data type and about
+4x for 64-bit data type.  It tends to do even better when the metric to sort by
+gets more complicated. Sorting by Euclidean distance can be up-to 10x faster.
 
 ![alt text](./misc/object_qsort-perf.jpg?raw=true)
 

@@ -10,7 +10,8 @@ static int check_cpu_feature_support(std::string_view cpufeature)
     const char *disable_avx512 = std::getenv("XSS_DISABLE_AVX512");
 
     if ((cpufeature == "avx512_spr") && (!disable_avx512))
-#if defined(__FLT16_MAX__) && !defined(__INTEL_LLVM_COMPILER)
+#if defined(__FLT16_MAX__) && !defined(__INTEL_LLVM_COMPILER) \
+        && __clang_major__ >= 18
         return __builtin_cpu_supports("avx512f")
                 && __builtin_cpu_supports("avx512fp16")
                 && __builtin_cpu_supports("avx512vbmi2");
@@ -129,39 +130,6 @@ namespace x86simdsort {
         } \
     }
 
-#define DISPATCH_KEYVALUE_SORT(TYPE1, TYPE2, ISA) \
-    static void(CAT(CAT(*internal_kv_qsort_, TYPE1), TYPE2))( \
-            TYPE1 *, TYPE2 *, size_t, bool) \
-            = NULL; \
-    template <> \
-    void keyvalue_qsort(TYPE1 *key, TYPE2 *val, size_t arrsize, bool hasnan) \
-    { \
-        (CAT(CAT(*internal_kv_qsort_, TYPE1), TYPE2))( \
-                key, val, arrsize, hasnan); \
-    } \
-    static __attribute__((constructor)) void CAT( \
-            CAT(resolve_keyvalue_qsort_, TYPE1), TYPE2)(void) \
-    { \
-        CAT(CAT(internal_kv_qsort_, TYPE1), TYPE2) \
-                = &xss::scalar::keyvalue_qsort<TYPE1, TYPE2>; \
-        __builtin_cpu_init(); \
-        std::string_view preferred_cpu = find_preferred_cpu(ISA); \
-        if constexpr (dispatch_requested("avx512", ISA)) { \
-            if (preferred_cpu.find("avx512") != std::string_view::npos) { \
-                CAT(CAT(internal_kv_qsort_, TYPE1), TYPE2) \
-                        = &xss::avx512::keyvalue_qsort<TYPE1, TYPE2>; \
-                return; \
-            } \
-        } \
-        if constexpr (dispatch_requested("avx2", ISA)) { \
-            if (preferred_cpu.find("avx2") != std::string_view::npos) { \
-                CAT(CAT(internal_kv_qsort_, TYPE1), TYPE2) \
-                        = &xss::avx2::keyvalue_qsort<TYPE1, TYPE2>; \
-                return; \
-            } \
-        } \
-    }
-
 #define ISA_LIST(...) \
     std::initializer_list<std::string_view> \
     { \
@@ -206,6 +174,80 @@ DISPATCH_ALL(argselect,
              (ISA_LIST("none")),
              (ISA_LIST("avx512_skx", "avx2")),
              (ISA_LIST("avx512_skx", "avx2")))
+
+/* Key-Value methods */
+#define DECLARE_ALL_KEYVALUE_METHODS(TYPE1, TYPE2) \
+    static void(CAT(CAT(*internal_keyvalue_qsort_, TYPE1), TYPE2))( \
+            TYPE1 *, TYPE2 *, size_t, bool, bool) \
+            = NULL; \
+    static void(CAT(CAT(*internal_keyvalue_select_, TYPE1), TYPE2))( \
+            TYPE1 *, TYPE2 *, size_t, size_t, bool, bool) \
+            = NULL; \
+    static void(CAT(CAT(*internal_keyvalue_partial_sort_, TYPE1), TYPE2))( \
+            TYPE1 *, TYPE2 *, size_t, size_t, bool, bool) \
+            = NULL; \
+    template <> \
+    void keyvalue_qsort(TYPE1 *key, \
+                        TYPE2 *val, \
+                        size_t arrsize, \
+                        bool hasnan, \
+                        bool descending) \
+    { \
+        (CAT(CAT(*internal_keyvalue_qsort_, TYPE1), TYPE2))( \
+                key, val, arrsize, hasnan, descending); \
+    } \
+    template <> \
+    void keyvalue_select(TYPE1 *key, \
+                         TYPE2 *val, \
+                         size_t k, \
+                         size_t arrsize, \
+                         bool hasnan, \
+                         bool descending) \
+    { \
+        (CAT(CAT(*internal_keyvalue_select_, TYPE1), TYPE2))( \
+                key, val, k, arrsize, hasnan, descending); \
+    } \
+    template <> \
+    void keyvalue_partial_sort(TYPE1 *key, \
+                               TYPE2 *val, \
+                               size_t k, \
+                               size_t arrsize, \
+                               bool hasnan, \
+                               bool descending) \
+    { \
+        (CAT(CAT(*internal_keyvalue_partial_sort_, TYPE1), TYPE2))( \
+                key, val, k, arrsize, hasnan, descending); \
+    }
+
+#define DISPATCH_KV_FUNC(func, TYPE1, TYPE2, ISA) \
+    static __attribute__((constructor)) void CAT( \
+            CAT(CAT(CAT(resolve_, func), _), TYPE1), TYPE2)(void) \
+    { \
+        CAT(CAT(CAT(CAT(internal_, func), _), TYPE1), TYPE2) \
+                = &xss::scalar::func<TYPE1, TYPE2>; \
+        __builtin_cpu_init(); \
+        std::string_view preferred_cpu = find_preferred_cpu(ISA); \
+        if constexpr (dispatch_requested("avx512", ISA)) { \
+            if (preferred_cpu.find("avx512") != std::string_view::npos) { \
+                CAT(CAT(CAT(CAT(internal_, func), _), TYPE1), TYPE2) \
+                        = &xss::avx512::func<TYPE1, TYPE2>; \
+                return; \
+            } \
+        } \
+        if constexpr (dispatch_requested("avx2", ISA)) { \
+            if (preferred_cpu.find("avx2") != std::string_view::npos) { \
+                CAT(CAT(CAT(CAT(internal_, func), _), TYPE1), TYPE2) \
+                        = &xss::avx2::func<TYPE1, TYPE2>; \
+                return; \
+            } \
+        } \
+    }
+
+#define DISPATCH_KEYVALUE_SORT(TYPE1, TYPE2, ISA) \
+    DECLARE_ALL_KEYVALUE_METHODS(TYPE1, TYPE2) \
+    DISPATCH_KV_FUNC(keyvalue_qsort, TYPE1, TYPE2, ISA) \
+    DISPATCH_KV_FUNC(keyvalue_select, TYPE1, TYPE2, ISA) \
+    DISPATCH_KV_FUNC(keyvalue_partial_sort, TYPE1, TYPE2, ISA)
 
 #define DISPATCH_KEYVALUE_SORT_FORTYPE(type) \
     DISPATCH_KEYVALUE_SORT(type, uint64_t, (ISA_LIST("avx512_skx", "avx2"))) \
